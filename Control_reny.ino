@@ -36,15 +36,20 @@ int V_sistema[8][6]={  //V1, V5, V3, V4, V2, Enable
 };
 
 int estado_V[8][6]= {  //V1, V5, V3, V4, V2, Enable
-  {0, 0, 0, 0, 0, 0},      //M1
-  {0, 0, 0, 0, 0, 0}, //M2
-  {0, 0, 0, 0, 0, 0}, //M3
-  {0, 0, 0, 0, 0, 0}, //M4
-  {0, 0, 0, 0, 0, 0}, //M5
-  {0, 0, 0, 0, 0, 0}, //M6
-  {0, 0, 0, 0, 0, 0}, //M7
-  {0, 0, 0, 0, 0, 0}  //M8
+  {1, 1, 1, 1, 1, 1},      //M1
+  {1, 1, 1, 1, 1, 1}, //M2
+  {1, 1, 1, 1, 1, 1}, //M3
+  {1, 1, 1, 1, 1, 1}, //M4
+  {1, 1, 1, 1, 1, 1}, //M5
+  {1, 1, 1, 1, 1, 1}, //M6
+  {1, 1, 1, 1, 1, 1}, //M7
+  {1, 1, 1, 1, 1, 1}  //M8
 };
+
+int Ent_sistema = 40,
+    estado_ENT = 1, 
+    SAL_sistema = 8, 
+    estado_SAL = 1;
 
 //***************************************************** Declracion de objetos de la pantalla
 NexDSButton bt0 = NexDSButton(2, 2, "bt0");
@@ -89,20 +94,33 @@ void operarAutomatico(void *ptr){
   }
 }
 
+//************************************************************* Funcion de estado del sistema
 void mostrarMonitor(void *ptr){
   String Sal;
   for (int i=0; i<8; i++){
-    for (int k=0; k<6; k++){
+    for (int k=0; k<5; k++){
       Sal = "page1.bt" + String(V_sistema[i][k]) + ".val=" + String(estado_V[i][k]); //V
+      Serial.println(Sal);
       Serial2.print(Sal);    
       ff();
-      delay(5);
+      delay(9);
     }
     Sal = "page1.r" + String(V_sistema[i][5]) + ".val=" + String(estado_V[i][5]); //E
+    Serial.println(Sal);
     Serial2.print(Sal);    
     ff();
-    delay(5);
+    delay(9);
   }
+  Sal = "page1.bt" + String(Ent_sistema) + ".val=" + String(estado_ENT);
+  Serial.println(Sal);
+  Serial2.print(Sal);    
+  ff();
+  delay(9);
+  Sal = "page1.r" + String(SAL_sistema) + ".val=" + String(estado_SAL);
+  Serial.println(Sal);
+  Serial2.print(Sal);    
+  ff();
+  delay(9);
 }
 
 //************************************************ Funcion de obtencion de minutos operacion
