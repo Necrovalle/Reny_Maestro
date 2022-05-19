@@ -27,7 +27,7 @@ int enjuague_Auto[] = {17, 18, 19, 20, 21, 22, 23, 24};
 int V_sistema[8][6]={  //V1, V5, V3, V4, V2, Enable
   {0, 4, 8, 9, 16, 0},      //M1
   {20, 24, 28, 29, 36, 4},  //M2
-  {1, 5, 10, 11, 17, 1},     //M3
+  {1, 5, 10, 11, 17, 1},    //M3
   {21, 25, 30, 31, 37, 5},  //M4
   {2, 6, 12, 13, 18, 2},    //M5
   {22, 26, 32, 33, 38, 6},  //M6
@@ -35,15 +35,26 @@ int V_sistema[8][6]={  //V1, V5, V3, V4, V2, Enable
   {23, 27, 34, 35, 39, 7}   //M8
 };
 
+int name_Semi[8][3] = {
+  {0, 8, 16},
+  {1, 9, 17},
+  {2, 10, 18},
+  {3, 11, 19},
+  {4, 12, 20},
+  {5, 13, 21},
+  {6, 14, 22},
+  {7, 15, 23}
+};
+
 int estado_V[8][6]= {  //V1, V5, V3, V4, V2, Enable
-  {1, 1, 1, 1, 1, 1},      //M1
-  {1, 1, 1, 1, 1, 1}, //M2
-  {1, 1, 1, 1, 1, 1}, //M3
-  {1, 1, 1, 1, 1, 1}, //M4
-  {1, 1, 1, 1, 1, 1}, //M5
-  {1, 1, 1, 1, 1, 1}, //M6
-  {1, 1, 1, 1, 1, 1}, //M7
-  {1, 1, 1, 1, 1, 1}  //M8
+  {0, 0, 0, 0, 0, 0},      //M1
+  {0, 0, 0, 0, 0, 0}, //M2
+  {0, 0, 0, 0, 0, 0}, //M3
+  {0, 0, 0, 0, 0, 0}, //M4
+  {0, 0, 0, 0, 0, 0}, //M5
+  {0, 0, 0, 0, 0, 0}, //M6
+  {0, 0, 0, 0, 0, 0}, //M7
+  {0, 0, 0, 0, 0, 0}  //M8
 };
 
 int Ent_sistema = 40,
@@ -52,14 +63,16 @@ int Ent_sistema = 40,
     estado_SAL = 1;
 
 //***************************************************** Declracion de objetos de la pantalla
-NexDSButton bt0 = NexDSButton(2, 2, "bt0");
+NexDSButton bt0 = NexDSButton(2, 2, "bt0");  //(page, id, name)
 NexButton monitor_b = NexButton(0, 3, "b0");
+NexDSButton Clarificacion1 = NexDSButton(3, 16, "bt0");
 
 //Listado de eventos
 NexTouch *nex_listen_list[]=
 {
   &bt0,
   &monitor_b,
+  &Clarificacion1,
   NULL
 };
 
@@ -264,18 +277,51 @@ void apagarAuto(){
     String Sal1 = "page2.bt" + String(clarificado_Auto[i]) + ".val=0";
     Serial2.print(Sal1);    
     ff();
-    delay(5);
+    delay(8);
     Sal1 = "page2.bt" + String(retrolavado_Auto[i]) + ".val=0";
     Serial2.print(Sal1);    
     ff();
-    delay(5);
+    delay(8);
     Sal1 = "page2.bt" + String(enjuague_Auto[i]) + ".val=0";
     Serial2.print(Sal1);    
     ff();
-    delay(5);
+    delay(8);
   }
   //mandar señales
   Auto = false;
+}
+
+void CLF_semi(int N, int EDO){
+  String Sal;
+  if (EDO == 1){
+    Sal = "Calrificacion en " + String(N) + " ON";
+    Serial.println(Sal);
+    //Apagar las otras dos operaciones de la linea
+    Sal = "page3.bt" + String(name_Semi[N-1][1]) + ".val=0";
+    Serial2.print(Sal);
+    ff();
+    delay(8);
+    Sal = "page3.bt" + String(name_Semi[N-1][2]) + ".val=0";
+    Serial2.print(Sal);
+    ff();
+    delay(8);
+    //mandar señales
+  } else {
+    Sal = "Calrificacion en " + String(N) + " OFF";
+    Serial.println(Sal);
+    //mandar señales
+  }
+}
+
+void Clarificar1(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Clarificacion1.getValue(&estado);
+  if (estado){
+    CLF_semi(1, 1);
+  } else {
+    CLF_semi(1,0);
+  }
 }
 
 //*************************************************** Funcion de fin de cadena a la pantalla
@@ -291,6 +337,7 @@ void setup() {
   dbSerialPrintln("Inicializado");
   bt0.attachPop(operarAutomatico, &bt0);
   monitor_b.attachPop(mostrarMonitor, &monitor_b);
+  Clarificacion1.attachPop(Clarificar1, &Clarificacion1);
   
 }
 
