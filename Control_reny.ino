@@ -7,6 +7,8 @@ boolean Auto=false, Manual=true, Semi=false; //Modos de operación
 int N_man; //Linea de trabajo para operacion manual
 unsigned int MINS = 0;
 unsigned long mSECS = 0;
+float condAcep=0.0; //Valor de conductividad de aceptacion
+float presAcep=0.0; //Valor de presion dentrada de aceptacion
 int minOP=3, minLV=2, minEN=2;
 int T_OP[]={0,0,0,0};
 int T_LV[]={0,0,0,0};
@@ -105,6 +107,22 @@ NexButton LINEA6 = NexButton(4, 7, "b5");
 NexButton LINEA7 = NexButton(4, 10, "b7");
 NexButton LINEA8 = NexButton(4, 11, "b8");
 
+//Valvula seccion manual
+NexDSButton Vman1 = NexDSButton(5, 6, "bt2");
+NexDSButton Vman2 = NexDSButton(5, 7, "bt3");
+NexDSButton Vman3 = NexDSButton(5, 5, "bt1");
+NexDSButton Vman4 = NexDSButton(5, 8, "bt4");
+NexDSButton Vman5 = NexDSButton(5, 4, "bt0");
+NexDSButton Vrechazo1   = NexDSButton(5, 21, "bt6");
+NexDSButton Vrechazo2   = NexDSButton(5, 22, "bt7");
+NexDSButton bombaLavado = NexDSButton(5, 19, "bt5");
+NexButton apagadoManual = NexButton(5, 11, "b1");
+
+//Calibracion de aceptacion de agua entrante
+NexButton Cal_entrada = NexButton(6, 10, "b0");
+NexNumber valConduct = NexNumber(6, 3, "n0");
+NexNumber valPresEnt = NexNumber(6, 7, "n1");
+
 //Listado de eventos
 NexTouch *nex_listen_list[]=
 {
@@ -143,6 +161,18 @@ NexTouch *nex_listen_list[]=
   &LINEA6,
   &LINEA7,
   &LINEA8,
+  &Vman1,
+  &Vman2,
+  &Vman3,
+  &Vman4,
+  &Vman5,
+  &Vrechazo1,
+  &Vrechazo2,
+  &bombaLavado,
+  &apagadoManual,
+  &Cal_entrada,
+  &valConduct,
+  &valPresEnt,
   NULL
 };
 
@@ -710,44 +740,186 @@ void Apagar_semi(void *ptr){
 
 //Operacion en manual
 void operar1(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"1\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 1;
   Serial.println(N_man);
 }
 
 void operar2(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"2\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 2;
   Serial.println(N_man);
 }
 
 void operar3(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"3\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 3;
   Serial.println(N_man);
 }
 
 void operar4(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"4\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 4;
   Serial.println(N_man);
 }
 
 void operar5(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"5\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 5;
   Serial.println(N_man);
 }
 
 void operar6(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"6\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 6;
   Serial.println(N_man);
 }
 
 void operar7(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"7\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 7;
   Serial.println(N_man);
 }
 
 void operar8(void *ptr){
+  String Sal;
+  Sal = "page5.t1.txt=\"8\"";
+  Serial2.print(Sal);
+  ff();
   N_man = 8;
   Serial.println(N_man);
 }
+
+//Operacion manual de valvulas individuales
+void operarV1(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Vman1.getValue(&estado);
+  if (estado){
+    Serial.println("V1");
+    //mandar señales
+    //en funcion con ID y numero de valvula
+  } else {
+    Serial.println("V1 off");
+    //mandar señales
+  }
+}
+
+
+void operarV2(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Vman2.getValue(&estado);
+  if (estado){
+    Serial.println("V2");
+    //mandar señales
+  } else {
+    Serial.println("V2 off");
+    //mandar señales
+  }
+}
+
+void operarV3(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Vman3.getValue(&estado);
+  if (estado){
+    Serial.println("V3");
+    //mandar señales
+  } else {
+    Serial.println("V3 off");
+    //mandar señales
+  }
+}
+
+void operarV4(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Vman4.getValue(&estado);
+  if (estado){
+    Serial.println("V4");
+    //mandar señales
+  } else {
+    Serial.println("V4 off");
+    //mandar señales
+  }
+}
+
+void operarV5(void *ptr){
+  uint32_t estado;
+  Semi = true;
+  Vman5.getValue(&estado);
+  if (estado){
+    Serial.println("V5");
+    //mandar señales
+  } else {
+    Serial.println("V5 off");
+    //mandar señales
+  }
+}
+
+void Rechazar1(void *ptr){
+  //programar accion para rechazar 1 en manual
+}
+
+void Rechazar2(void *ptr){
+  //programar accion para rechazar 2 en manual
+}
+
+void Activar_bomba_lav(void *ptr){
+  //programar accion para activar la bomba de lavado en manual
+}
+
+void apagarManual(void *ptr){
+  String Sal;
+  for (int i=0; i<9; i++){
+    Sal = "page5.bt" + String(i) + ".val=0";
+    Serial2.print(Sal);
+    ff();
+    Serial.println(Sal);
+    delay(8);
+  }
+  //mandar señales
+}
+
+//calibracion de parametros de agua de entrada
+void calibrarEntrada(void *ptr){
+  String Scondu;
+  String SPent;
+  uint32_t estado;
+  valConduct.getValue(&estado);
+  Scondu = String(estado);
+  condAcep = Scondu.toFloat();
+  Serial.println(condAcep);
+  valPresEnt.getValue(&estado);
+  SPent = String(estado);
+  presAcep = SPent.toFloat();
+  Serial.println(presAcep);
+  //Programar las comparativas
+}
+
+
 //*************************************************** Funcion de fin de cadena a la pantalla
 void ff(){
   Serial2.write(0xff);
@@ -794,6 +966,16 @@ void setup() {
   LINEA6.attachPop(operar6, &LINEA6);
   LINEA7.attachPop(operar7, &LINEA7);
   LINEA8.attachPop(operar8, &LINEA8);
+  Vman1.attachPop(operarV1, &Vman1);
+  Vman2.attachPop(operarV2, &Vman2);
+  Vman3.attachPop(operarV3, &Vman3);
+  Vman4.attachPop(operarV4, &Vman4);
+  Vman5.attachPop(operarV5, &Vman5);
+  Vrechazo1.attachPop(Rechazar1, &Vrechazo1);
+  Vrechazo2.attachPop(Rechazar2, &Vrechazo2);
+  bombaLavado.attachPop(Activar_bomba_lav, &bombaLavado);
+  apagadoManual.attachPop(apagarManual, &apagadoManual);
+  Cal_entrada.attachPop(calibrarEntrada, &Cal_entrada);
 }
 
 //******************************************************************************** MAIN LOOP
