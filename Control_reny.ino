@@ -28,14 +28,14 @@ int enjuague_Auto[] = {17, 18, 19, 20, 21, 22, 23, 24};
 //V4 = Solucion retrolavado
 //V2 = agua clarificada
 int V_sistema[8][6]={  //V1, V5, V3, V4, V2, Enable
-  {0, 4, 8, 9, 16, 0},      //M1
-  {20, 24, 28, 29, 36, 4},  //M2
-  {1, 5, 10, 11, 17, 1},    //M3
-  {21, 25, 30, 31, 37, 5},  //M4
-  {2, 6, 12, 13, 18, 2},    //M5
-  {22, 26, 32, 33, 38, 6},  //M6
-  {3, 7, 14, 15, 19, 3},    //M7
-  {23, 27, 34, 35, 39, 7}   //M8
+  { 0, 16,  8,  9,  4, 0},  //M1
+  {20, 36, 28, 29, 24, 4},  //M2
+  { 1, 17, 10, 11,  5, 1},  //M3
+  {21, 37, 30, 31, 25, 5},  //M4
+  { 2, 18, 12, 13,  6, 2},  //M5
+  {22, 38, 32, 33, 26, 6},  //M6
+  { 3, 19, 14, 15,  7, 3},  //M7
+  {23, 39, 34, 35, 27, 7}   //M8
 };
 
 int name_Semi[8][3] = {
@@ -61,9 +61,9 @@ int estado_V[8][6]= {  //V1, V5, V3, V4, V2, Enable
 };
 
 int Ent_sistema = 40,
-    estado_ENT = 1, 
+    estado_ENT = 0, 
     SAL_sistema = 8, 
-    estado_SAL = 1;
+    estado_SAL = 0;
 
 //***************************************************** Declracion de objetos de la pantalla
 NexDSButton bt0 = NexDSButton(2, 2, "bt0");  //(page, id, name) modo automatico
@@ -123,6 +123,12 @@ NexButton Cal_entrada = NexButton(6, 10, "b0");
 NexNumber valConduct = NexNumber(6, 3, "n0");
 NexNumber valPresEnt = NexNumber(6, 7, "n1");
 
+//setup del sistema
+NexButton setupSist  = NexButton(8, 13, "b0");
+NexNumber Toperacion = NexNumber(8, 4, "n0");
+NexNumber Tlavado    = NexNumber(8, 7, "n1");
+NexNumber Tenjuague  = NexNumber(8, 10, "n2");
+
 //Listado de eventos
 NexTouch *nex_listen_list[]=
 {
@@ -173,6 +179,10 @@ NexTouch *nex_listen_list[]=
   &Cal_entrada,
   &valConduct,
   &valPresEnt,
+  &setupSist,
+  &Toperacion,
+  &Tlavado,
+  &Tenjuague,
   NULL
 };
 
@@ -200,7 +210,7 @@ void operarAutomatico(void *ptr){
     dbSerialPrintln("Encendido...");
   } else {
     Auto=false;
-    Manual=true; 
+    Manual=false; 
     Semi=false;
     apagarAuto();
     dbSerialPrintln("Apagado...");
@@ -290,10 +300,12 @@ void lavado_Auto_linea(int N){
   Serial2.print(Sal1);    
   ff();
   delay(5);
+  V_lavando(2*N);
   String Sal2 = "page2.bt" + String(clarificado_Auto[2*N+1]) + ".val=0";
   Serial2.print(Sal2);    
   ff();
   delay(5);
+  V_lavando(2*N+1);
   Sal1 = "page2.bt" + String(retrolavado_Auto[2*N]) + ".val=1";
   Serial2.print(Sal1);    
   ff();
@@ -319,10 +331,12 @@ void enjuague_Auto_linea(int N){
   Serial2.print(Sal1);    
   ff();
   delay(5);
+  V_enjuague(2*N);
   String Sal2 = "page2.bt" + String(clarificado_Auto[2*N+1]) + ".val=0";
   Serial2.print(Sal2);    
   ff();
   delay(5);
+  V_enjuague(2*N+1);
   Sal1 = "page2.bt" + String(retrolavado_Auto[2*N]) + ".val=0";
   Serial2.print(Sal1);    
   ff();
@@ -348,10 +362,12 @@ void operando_Auto_linea(int N){
   Serial2.print(Sal1);    
   ff();
   delay(5);
+  V_operando(2*N);
   String Sal2 = "page2.bt" + String(clarificado_Auto[2*N+1]) + ".val=1";
   Serial2.print(Sal2);    
   ff();
   delay(5);
+  V_operando(2*N+1);
   Sal1 = "page2.bt" + String(retrolavado_Auto[2*N]) + ".val=0";
   Serial2.print(Sal1);    
   ff();
@@ -386,6 +402,7 @@ void apagarAuto(){
     Serial2.print(Sal1);    
     ff();
     delay(8);
+    V_apagar(i);
   }
   //mandar señales
   Auto = false;
@@ -420,8 +437,10 @@ void Clarificar1(void *ptr){
   Clarificacion1.getValue(&estado);
   if (estado){
     CLF_semi(1, 1);
+    V_operando(0);
   } else {
     CLF_semi(1,0);
+    V_apagar(0);
   }
 }
 
@@ -431,8 +450,10 @@ void Clarificar2(void *ptr){
   Clarificacion2.getValue(&estado);
   if (estado){
     CLF_semi(2, 1);
+    V_operando(1);
   } else {
     CLF_semi(2,0);
+    V_apagar(1);
   }
 }
 
@@ -442,8 +463,10 @@ void Clarificar3(void *ptr){
   Clarificacion3.getValue(&estado);
   if (estado){
     CLF_semi(3, 1);
+    V_operando(2);
   } else {
     CLF_semi(3,0);
+    V_apagar(2);
   }
 }
 
@@ -453,8 +476,10 @@ void Clarificar4(void *ptr){
   Clarificacion4.getValue(&estado);
   if (estado){
     CLF_semi(4, 1);
+    V_operando(3);
   } else {
     CLF_semi(4,0);
+    V_apagar(3);
   }
 }
 
@@ -464,8 +489,10 @@ void Clarificar5(void *ptr){
   Clarificacion5.getValue(&estado);
   if (estado){
     CLF_semi(5, 1);
+    V_operando(4);
   } else {
     CLF_semi(5,0);
+    V_apagar(4);
   }
 }
 
@@ -475,8 +502,10 @@ void Clarificar6(void *ptr){
   Clarificacion6.getValue(&estado);
   if (estado){
     CLF_semi(6, 1);
+    V_operando(5);
   } else {
     CLF_semi(6,0);
+    V_apagar(5);
   }
 }
 
@@ -486,8 +515,10 @@ void Clarificar7(void *ptr){
   Clarificacion7.getValue(&estado);
   if (estado){
     CLF_semi(7, 1);
+    V_operando(6);
   } else {
     CLF_semi(7,0);
+    V_apagar(6);
   }
 }
 
@@ -497,8 +528,10 @@ void Clarificar8(void *ptr){
   Clarificacion8.getValue(&estado);
   if (estado){
     CLF_semi(8, 1);
+    V_operando(7);
   } else {
     CLF_semi(8,0);
+    V_apagar(7);
   }
 }
 
@@ -531,8 +564,10 @@ void Retrolavar1(void *ptr){
   Retrolavado1.getValue(&estado);
   if (estado){
     RLV_semi(1, 1);
+    V_lavando(0);
   } else {
     RLV_semi(1,0);
+    V_apagar(0);
   }
 }
 
@@ -542,8 +577,10 @@ void Retrolavar2(void *ptr){
   Retrolavado2.getValue(&estado);
   if (estado){
     RLV_semi(2, 1);
+    V_lavando(1);
   } else {
     RLV_semi(2,0);
+    V_apagar(1);
   }
 }
 void Retrolavar3(void *ptr){
@@ -552,8 +589,10 @@ void Retrolavar3(void *ptr){
   Retrolavado3.getValue(&estado);
   if (estado){
     RLV_semi(3, 1);
+    V_lavando(2);
   } else {
     RLV_semi(3,0);
+    V_apagar(2);
   }
 }
 
@@ -563,8 +602,10 @@ void Retrolavar4(void *ptr){
   Retrolavado4.getValue(&estado);
   if (estado){
     RLV_semi(4, 1);
+    V_lavando(3);
   } else {
     RLV_semi(4,0);
+    V_apagar(3);
   }
 }
 
@@ -574,8 +615,10 @@ void Retrolavar5(void *ptr){
   Retrolavado5.getValue(&estado);
   if (estado){
     RLV_semi(5, 1);
+    V_lavando(4);
   } else {
     RLV_semi(5,0);
+    V_apagar(4);
   }
 }
 
@@ -585,8 +628,10 @@ void Retrolavar6(void *ptr){
   Retrolavado6.getValue(&estado);
   if (estado){
     RLV_semi(6, 1);
+    V_lavando(5);
   } else {
     RLV_semi(6,0);
+    V_apagar(5);
   }
 }
 
@@ -596,8 +641,10 @@ void Retrolavar7(void *ptr){
   Retrolavado7.getValue(&estado);
   if (estado){
     RLV_semi(7, 1);
+    V_lavando(6);
   } else {
     RLV_semi(7,0);
+    V_apagar(6);
   }
 }
 
@@ -607,8 +654,10 @@ void Retrolavar8(void *ptr){
   Retrolavado8.getValue(&estado);
   if (estado){
     RLV_semi(8, 1);
+    V_lavando(7);
   } else {
     RLV_semi(8,0);
+    V_apagar(7);
   }
 }
 
@@ -641,8 +690,10 @@ void Enjuagar1(void *ptr){
   Enjuague1.getValue(&estado);
   if (estado){
     ENJ_semi(1, 1);
+    V_enjuague(0);
   } else {
     ENJ_semi(1,0);
+    V_apagar(0);
   }
 }
 
@@ -652,8 +703,10 @@ void Enjuagar2(void *ptr){
   Enjuague2.getValue(&estado);
   if (estado){
     ENJ_semi(2, 1);
+    V_enjuague(1);
   } else {
     ENJ_semi(2,0);
+    V_apagar(1);
   }
 }
 
@@ -663,8 +716,10 @@ void Enjuagar3(void *ptr){
   Enjuague3.getValue(&estado);
   if (estado){
     ENJ_semi(3, 1);
+    V_enjuague(2);
   } else {
     ENJ_semi(3,0);
+    V_apagar(2);
   }
 }
 
@@ -674,8 +729,10 @@ void Enjuagar4(void *ptr){
   Enjuague4.getValue(&estado);
   if (estado){
     ENJ_semi(4, 1);
+    V_enjuague(3);
   } else {
     ENJ_semi(4,0);
+    V_apagar(3);
   }
 }
 
@@ -685,8 +742,10 @@ void Enjuagar5(void *ptr){
   Enjuague5.getValue(&estado);
   if (estado){
     ENJ_semi(5, 1);
+    V_enjuague(4);
   } else {
     ENJ_semi(5,0);
+    V_apagar(4);
   }
 }
 
@@ -696,8 +755,10 @@ void Enjuagar6(void *ptr){
   Enjuague6.getValue(&estado);
   if (estado){
     ENJ_semi(6, 1);
+    V_enjuague(5);
   } else {
     ENJ_semi(6,0);
+    V_apagar(5);
   }
 }
 
@@ -707,8 +768,10 @@ void Enjuagar7(void *ptr){
   Enjuague7.getValue(&estado);
   if (estado){
     ENJ_semi(7, 1);
+    V_enjuague(6);
   } else {
     ENJ_semi(7,0);
+    V_apagar(6);
   }
 }
 
@@ -718,8 +781,10 @@ void Enjuagar8(void *ptr){
   Enjuague8.getValue(&estado);
   if (estado){
     ENJ_semi(8, 1);
+    V_enjuague(7);
   } else {
     ENJ_semi(8,0);
+    V_apagar(6);
   }
 }
 
@@ -734,6 +799,7 @@ void Apagar_semi(void *ptr){
       Serial.println(Sal);
       delay(8);
     }
+    V_apagar(i);
   }
   //mandar señales
 }
@@ -744,7 +810,7 @@ void operar1(void *ptr){
   Sal = "page5.t1.txt=\"1\"";
   Serial2.print(Sal);
   ff();
-  N_man = 1;
+  N_man = 0;
   Serial.println(N_man);
 }
 
@@ -753,7 +819,7 @@ void operar2(void *ptr){
   Sal = "page5.t1.txt=\"2\"";
   Serial2.print(Sal);
   ff();
-  N_man = 2;
+  N_man = 1;
   Serial.println(N_man);
 }
 
@@ -762,7 +828,7 @@ void operar3(void *ptr){
   Sal = "page5.t1.txt=\"3\"";
   Serial2.print(Sal);
   ff();
-  N_man = 3;
+  N_man = 2;
   Serial.println(N_man);
 }
 
@@ -771,7 +837,7 @@ void operar4(void *ptr){
   Sal = "page5.t1.txt=\"4\"";
   Serial2.print(Sal);
   ff();
-  N_man = 4;
+  N_man = 3;
   Serial.println(N_man);
 }
 
@@ -780,7 +846,7 @@ void operar5(void *ptr){
   Sal = "page5.t1.txt=\"5\"";
   Serial2.print(Sal);
   ff();
-  N_man = 5;
+  N_man = 4;
   Serial.println(N_man);
 }
 
@@ -789,7 +855,7 @@ void operar6(void *ptr){
   Sal = "page5.t1.txt=\"6\"";
   Serial2.print(Sal);
   ff();
-  N_man = 6;
+  N_man = 5;
   Serial.println(N_man);
 }
 
@@ -798,7 +864,7 @@ void operar7(void *ptr){
   Sal = "page5.t1.txt=\"7\"";
   Serial2.print(Sal);
   ff();
-  N_man = 7;
+  N_man = 6;
   Serial.println(N_man);
 }
 
@@ -807,7 +873,7 @@ void operar8(void *ptr){
   Sal = "page5.t1.txt=\"8\"";
   Serial2.print(Sal);
   ff();
-  N_man = 8;
+  N_man = 7;
   Serial.println(N_man);
 }
 
@@ -818,10 +884,12 @@ void operarV1(void *ptr){
   Vman1.getValue(&estado);
   if (estado){
     Serial.println("V1");
+    estado_V[N_man][0] = 1;
     //mandar señales
     //en funcion con ID y numero de valvula
   } else {
     Serial.println("V1 off");
+    estado_V[N_man][0] = 0;
     //mandar señales
   }
 }
@@ -833,9 +901,11 @@ void operarV2(void *ptr){
   Vman2.getValue(&estado);
   if (estado){
     Serial.println("V2");
+    estado_V[N_man][1] = 1;
     //mandar señales
   } else {
     Serial.println("V2 off");
+    estado_V[N_man][1] = 0;
     //mandar señales
   }
 }
@@ -846,9 +916,11 @@ void operarV3(void *ptr){
   Vman3.getValue(&estado);
   if (estado){
     Serial.println("V3");
+    estado_V[N_man][2] = 1;
     //mandar señales
   } else {
     Serial.println("V3 off");
+    estado_V[N_man][2] = 0;
     //mandar señales
   }
 }
@@ -859,10 +931,12 @@ void operarV4(void *ptr){
   Vman4.getValue(&estado);
   if (estado){
     Serial.println("V4");
+    estado_V[N_man][3] = 1;
     //mandar señales
   } else {
     Serial.println("V4 off");
     //mandar señales
+    estado_V[N_man][3] = 0;
   }
 }
 
@@ -872,10 +946,12 @@ void operarV5(void *ptr){
   Vman5.getValue(&estado);
   if (estado){
     Serial.println("V5");
+    estado_V[N_man][4] = 1;
     //mandar señales
   } else {
     Serial.println("V5 off");
     //mandar señales
+    estado_V[N_man][4] = 0;
   }
 }
 
@@ -900,6 +976,7 @@ void apagarManual(void *ptr){
     Serial.println(Sal);
     delay(8);
   }
+  V_apagar(N_man);
   //mandar señales
 }
 
@@ -919,6 +996,74 @@ void calibrarEntrada(void *ptr){
   //Programar las comparativas
 }
 
+//Configuracion de tiempos de operacion 
+void setTiempos(void *ptr){
+  Serial.println("Entro");
+  String STop;
+  String STlv;
+  String STej;
+  uint32_t estado;
+  Toperacion.getValue(&estado);
+  STop = String(estado);
+  Tlavado.getValue(&estado);
+  STlv = String(estado);
+  Tenjuague.getValue(&estado);
+  STej = String(estado);
+  minOP = STop.toInt(); 
+  minLV = STlv.toInt(); 
+  minEN = STej.toInt();
+  Serial.println(minOP);
+  Serial.println(minLV);
+  Serial.println(minEN);
+}
+
+void T_op(void *ptr){
+  //
+}
+
+void T_lv(void *ptr){
+  //
+}
+
+void T_ej(void *ptr){
+  //
+}
+
+void V_operando(int N_l){
+  estado_V[N_l][0] = 1;
+  estado_V[N_l][1] = 1;
+  estado_V[N_l][2] = 0;
+  estado_V[N_l][3] = 0;
+  estado_V[N_l][4] = 0;
+  estado_V[N_l][5] = 1;
+}
+
+void V_lavando(int N_l){
+  estado_V[N_l][0] = 0;
+  estado_V[N_l][1] = 0;
+  estado_V[N_l][2] = 0;
+  estado_V[N_l][3] = 1;
+  estado_V[N_l][4] = 1;
+  estado_V[N_l][5] = 1;
+}
+
+void V_enjuague(int N_l){
+  estado_V[N_l][0] = 1;
+  estado_V[N_l][1] = 0;
+  estado_V[N_l][2] = 1;
+  estado_V[N_l][3] = 0;
+  estado_V[N_l][4] = 0;
+  estado_V[N_l][5] = 1;
+}
+
+void V_apagar(int N_l){
+  estado_V[N_l][0] = 0;
+  estado_V[N_l][1] = 0;
+  estado_V[N_l][2] = 0;
+  estado_V[N_l][3] = 0;
+  estado_V[N_l][4] = 0;
+  estado_V[N_l][5] = 0;
+}
 
 //*************************************************** Funcion de fin de cadena a la pantalla
 void ff(){
@@ -976,6 +1121,10 @@ void setup() {
   bombaLavado.attachPop(Activar_bomba_lav, &bombaLavado);
   apagadoManual.attachPop(apagarManual, &apagadoManual);
   Cal_entrada.attachPop(calibrarEntrada, &Cal_entrada);
+  setupSist.attachPop(setTiempos, &setupSist);
+  Toperacion.attachPop(T_op, &Toperacion);
+  Tlavado.attachPop(T_lv, &Tlavado);
+  Tenjuague.attachPop(T_ej, &Tenjuague);
 }
 
 //******************************************************************************** MAIN LOOP
