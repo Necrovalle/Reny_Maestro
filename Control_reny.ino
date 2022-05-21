@@ -49,7 +49,7 @@ int name_Semi[8][3] = {
   {7, 15, 23}
 };
 
-int estado_V[8][6]= {  //V1, V5, V3, V4, V2, Enable
+int estado_V[8][6]= {  //V1, V2, V3, V4, V5, Enable
   {0, 0, 0, 0, 0, 0},      //M1
   {0, 0, 0, 0, 0, 0}, //M2
   {0, 0, 0, 0, 0, 0}, //M3
@@ -59,6 +59,8 @@ int estado_V[8][6]= {  //V1, V5, V3, V4, V2, Enable
   {0, 0, 0, 0, 0, 0}, //M7
   {0, 0, 0, 0, 0, 0}  //M8
 };
+
+int dir_manual[] = {2, 3, 1, 4, 0, 8}; //V1 V2 V3 V4 V5 EN
 
 int Ent_sistema = 40,
     estado_ENT = 0, 
@@ -811,6 +813,7 @@ void operar1(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 0;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -820,6 +823,7 @@ void operar2(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 1;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -829,6 +833,7 @@ void operar3(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 2;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -838,6 +843,7 @@ void operar4(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 3;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -847,6 +853,7 @@ void operar5(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 4;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -856,6 +863,7 @@ void operar6(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 5;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -865,6 +873,7 @@ void operar7(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 6;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -874,6 +883,7 @@ void operar8(void *ptr){
   Serial2.print(Sal);
   ff();
   N_man = 7;
+  llenar_manual(N_man);
   Serial.println(N_man);
 }
 
@@ -885,6 +895,7 @@ void operarV1(void *ptr){
   if (estado){
     Serial.println("V1");
     estado_V[N_man][0] = 1;
+    estado_V[N_man][5] = 1;
     //mandar señales
     //en funcion con ID y numero de valvula
   } else {
@@ -902,6 +913,7 @@ void operarV2(void *ptr){
   if (estado){
     Serial.println("V2");
     estado_V[N_man][1] = 1;
+    estado_V[N_man][5] = 1;
     //mandar señales
   } else {
     Serial.println("V2 off");
@@ -917,6 +929,7 @@ void operarV3(void *ptr){
   if (estado){
     Serial.println("V3");
     estado_V[N_man][2] = 1;
+    estado_V[N_man][5] = 1;
     //mandar señales
   } else {
     Serial.println("V3 off");
@@ -932,6 +945,7 @@ void operarV4(void *ptr){
   if (estado){
     Serial.println("V4");
     estado_V[N_man][3] = 1;
+    estado_V[N_man][5] = 1;
     //mandar señales
   } else {
     Serial.println("V4 off");
@@ -947,6 +961,7 @@ void operarV5(void *ptr){
   if (estado){
     Serial.println("V5");
     estado_V[N_man][4] = 1;
+    estado_V[N_man][5] = 1;
     //mandar señales
   } else {
     Serial.println("V5 off");
@@ -1063,6 +1078,17 @@ void V_apagar(int N_l){
   estado_V[N_l][3] = 0;
   estado_V[N_l][4] = 0;
   estado_V[N_l][5] = 0;
+}
+
+void llenar_manual(int N_l){
+  String Sal;
+  for (int i=0; i<6; i++){
+    Sal = "page5.bt" + String(dir_manual[i]);
+    Sal = Sal + ".val=" + estado_V[N_l][i];
+    Serial2.print(Sal);
+    ff();
+    delay(8); 
+  }
 }
 
 //*************************************************** Funcion de fin de cadena a la pantalla
