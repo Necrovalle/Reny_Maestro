@@ -67,6 +67,9 @@ int Ent_sistema = 40,
     SAL_sistema = 8, 
     estado_SAL = 0;
 
+//Variables para comunicacion rs485
+char   RES;     //Resopuesta del modulo escalvo
+
 //***************************************************** Declracion de objetos de la pantalla
 NexDSButton bt0 = NexDSButton(2, 2, "bt0");  //(page, id, name) modo automatico
 NexButton monitor_b = NexButton(0, 3, "b0");  //Monitor del sistema
@@ -187,6 +190,66 @@ NexTouch *nex_listen_list[]=
   &Tenjuague,
   NULL
 };
+
+//********************************************** FUNCIONES PROPIAS
+void envioOrden(int id_, char CMD_){
+  int C_=0;
+  Serial1.print(id_);
+  delay(5);
+  digitalWrite(48, LOW); //Modo escucha
+  digitalWrite(46, LOW);
+  while (C_ < 10){
+    delay(100);
+    if (Serial1.available()>0){
+      RES = Serial1.read();
+      Serial.print("Recivido: ");
+      Serial.println(RES);
+      if ((RES-48) == id_){
+        Serial.print("Respondio el modulo ");
+        Serial.println(id_);
+        digitalWrite(48, HIGH); //Modo escritura
+        digitalWrite(46, HIGH);
+        delay(30);
+        C_ = 16;
+        envioCMD(CMD_);
+      }
+    }
+    C_ ++;
+    if (C_ == 15){
+      Serial.print("Modulo ");
+      Serial.print(id_);
+      Serial.println(" sin id");
+      digitalWrite(48, HIGH); //Modo escritura
+      digitalWrite(46, HIGH);
+    }
+  }
+}
+
+
+void envioCMD(char CMD_){
+  int C_=0;
+  Serial1.print(CMD_);
+  delay(5);
+  digitalWrite(48, LOW); //Modo escucha
+  digitalWrite(46, LOW);
+  while (C_ < 10){
+    delay(100);
+    if (Serial1.available()>0){
+      RES = Serial1.read();
+      if (RES == CMD_){
+        Serial.print("Accion ejecutada: ");
+        Serial.println(RES);
+        C_ = 16;
+      }
+    }
+    C_ ++;
+    if (C_ == 15){
+      Serial.println(" Sin ejecucion");
+    }
+  }
+  digitalWrite(48, HIGH); //Modo escritura
+  digitalWrite(46, HIGH);
+}
 
 //******************************************************* Funciones de accion de la pantalla
 void operarAutomatico(void *ptr){
@@ -326,6 +389,10 @@ void lavado_Auto_linea(int N){
   //mandar señales
   Serial.print("Lavando numero: ");
   Serial.println(N);
+  //char S = char(2*N+1);
+  envioOrden(2*N+1, 'B');
+  //S = char(2*N+2);
+  envioOrden(2*N+2, 'B');
 }
 
 void enjuague_Auto_linea(int N){
@@ -355,6 +422,10 @@ void enjuague_Auto_linea(int N){
   Serial2.print(Sal2);    
   ff();
   //mandar señales
+  //char S = char(2*N+1);
+  envioOrden(2*N+1, 'C');
+  //S = char(2*N+2);
+  envioOrden(2*N+2, 'C');
   Serial.print("Enjuagando numero: ");
   Serial.println(N);
 }
@@ -386,6 +457,10 @@ void operando_Auto_linea(int N){
   Serial2.print(Sal2);    
   ff();
   //mandar señales
+  //char S = char(2*N+1);
+  envioOrden(2*N+1, 'A');
+  //S = char(2*N+2);
+  envioOrden(2*N+2, 'A');
   Serial.print("Operando numero: ");
   Serial.println(N);
 }
@@ -404,9 +479,11 @@ void apagarAuto(){
     Serial2.print(Sal1);    
     ff();
     delay(8);
+    //mandar senales
+    char S = char(i+1);
+  envioOrden(S, 'Z');
     V_apagar(i);
   }
-  //mandar señales
   Auto = false;
 }
 
@@ -426,9 +503,13 @@ void CLF_semi(int N, int EDO){
     ff();
     delay(8);
     //mandar señales
+    char S = char(N);
+    envioOrden(S, 'A');
   } else {
     Sal = "Calrificacion en " + String(N) + " OFF";
     Serial.println(Sal);
+    char S = char(N);
+    envioOrden(S, 'X');
     //mandar señales
   }
 }
@@ -553,10 +634,14 @@ void RLV_semi(int N, int EDO){
     ff();
     delay(8);
     //mandar señales
+    char S = char(N);
+    envioOrden(S, 'B');
   } else {
     Sal = "Retrovado en " + String(N) + " OFF";
     Serial.println(Sal);
     //mandar señales
+    char S = char(N);
+    envioOrden(S, 'X');
   }
 }
 
@@ -679,10 +764,14 @@ void ENJ_semi(int N, int EDO){
     ff();
     delay(8);
     //mandar señales
+    char S = char(N);
+    envioOrden(S, 'C');
   } else {
     Sal = "Enjuague en " + String(N) + " OFF";
     Serial.println(Sal);
     //mandar señales
+    char S = char(N);
+    envioOrden(S, 'X');
   }
 }
 
@@ -793,6 +882,7 @@ void Enjuagar8(void *ptr){
 //Apagar semi automatico
 void Apagar_semi(void *ptr){
   String Sal;
+  char S;
   for (int i=0; i<8; i++){
     for (int j=0; j<3; j++){
       Sal = "page3.bt" + String(name_Semi[i][j]) + ".val=0";
@@ -802,6 +892,8 @@ void Apagar_semi(void *ptr){
       delay(8);
     }
     V_apagar(i);
+    S = String(i+1):
+    envioOrden(S, 'X');
   }
   //mandar señales
 }
@@ -890,6 +982,7 @@ void operar8(void *ptr){
 //Operacion manual de valvulas individuales
 void operarV1(void *ptr){
   uint32_t estado;
+  char S;
   Semi = true;
   Vman1.getValue(&estado);
   if (estado){
@@ -897,17 +990,21 @@ void operarV1(void *ptr){
     estado_V[N_man][0] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    //en funcion con ID y numero de valvula
+    S = String(N_man+1);
+    envioOrden(S, 'H');
   } else {
     Serial.println("V1 off");
     estado_V[N_man][0] = 0;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'h');
   }
 }
 
 
 void operarV2(void *ptr){
   uint32_t estado;
+  char S;
   Semi = true;
   Vman2.getValue(&estado);
   if (estado){
@@ -915,15 +1012,20 @@ void operarV2(void *ptr){
     estado_V[N_man][1] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'I');
   } else {
     Serial.println("V2 off");
     estado_V[N_man][1] = 0;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'i');
   }
 }
 
 void operarV3(void *ptr){
   uint32_t estado;
+  char S;
   Semi = true;
   Vman3.getValue(&estado);
   if (estado){
@@ -931,15 +1033,20 @@ void operarV3(void *ptr){
     estado_V[N_man][2] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'J');
   } else {
     Serial.println("V3 off");
     estado_V[N_man][2] = 0;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'j');
   }
 }
 
 void operarV4(void *ptr){
   uint32_t estado;
+  char S;
   Semi = true;
   Vman4.getValue(&estado);
   if (estado){
@@ -947,15 +1054,20 @@ void operarV4(void *ptr){
     estado_V[N_man][3] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'K');
   } else {
     Serial.println("V4 off");
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'k');
     estado_V[N_man][3] = 0;
   }
 }
 
 void operarV5(void *ptr){
   uint32_t estado;
+  char S;
   Semi = true;
   Vman5.getValue(&estado);
   if (estado){
@@ -963,9 +1075,13 @@ void operarV5(void *ptr){
     estado_V[N_man][4] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'L');
   } else {
     Serial.println("V5 off");
     //mandar señales
+    S = String(N_man+1);
+    envioOrden(S, 'l');
     estado_V[N_man][4] = 0;
   }
 }
@@ -1151,6 +1267,12 @@ void setup() {
   Toperacion.attachPop(T_op, &Toperacion);
   Tlavado.attachPop(T_lv, &Tlavado);
   Tenjuague.attachPop(T_ej, &Tenjuague);
+  //Configuracion rs485
+  pinMode(48, OUTPUT);    //Data eneble
+  pinMode(46, OUTPUT);    //Recive enable
+  Serial1.begin(9600);    //Comunicacion con la rede de modulos
+  digitalWrite(48, HIGH); //Modo escritura
+  digitalWrite(46, HIGH);  
 }
 
 //******************************************************************************** MAIN LOOP
