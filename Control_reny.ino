@@ -892,8 +892,7 @@ void Apagar_semi(void *ptr){
       delay(8);
     }
     V_apagar(i);
-    S = String(i+1):
-    envioOrden(S, 'X');
+    envioOrden(i+1, 'X');
   }
   //mandar señales
 }
@@ -990,14 +989,12 @@ void operarV1(void *ptr){
     estado_V[N_man][0] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'H');
+    envioOrden(N_man+1, 'H');
   } else {
     Serial.println("V1 off");
     estado_V[N_man][0] = 0;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'h');
+    envioOrden(N_man+1, 'h');
   }
 }
 
@@ -1012,14 +1009,12 @@ void operarV2(void *ptr){
     estado_V[N_man][1] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'I');
+    envioOrden(N_man+1, 'I');
   } else {
     Serial.println("V2 off");
     estado_V[N_man][1] = 0;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'i');
+    envioOrden(N_man+1, 'i');
   }
 }
 
@@ -1033,14 +1028,12 @@ void operarV3(void *ptr){
     estado_V[N_man][2] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'J');
+    envioOrden(N_man+1, 'J');
   } else {
     Serial.println("V3 off");
     estado_V[N_man][2] = 0;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'j');
+    envioOrden(N_man+1, 'j');
   }
 }
 
@@ -1054,13 +1047,11 @@ void operarV4(void *ptr){
     estado_V[N_man][3] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'K');
+    envioOrden(N_man+1, 'K');
   } else {
     Serial.println("V4 off");
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'k');
+    envioOrden(N_man+1, 'k');
     estado_V[N_man][3] = 0;
   }
 }
@@ -1075,13 +1066,11 @@ void operarV5(void *ptr){
     estado_V[N_man][4] = 1;
     estado_V[N_man][5] = 1;
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'L');
+    envioOrden(N_man+1, 'L');
   } else {
     Serial.println("V5 off");
     //mandar señales
-    S = String(N_man+1);
-    envioOrden(S, 'l');
+    envioOrden(N_man+1, 'l');
     estado_V[N_man][4] = 0;
   }
 }
