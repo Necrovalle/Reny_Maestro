@@ -314,14 +314,18 @@ void mostrarMonitor(void *ptr){
 //************************************************ Funcion de obtencion de minutos operacion
 void getMin(){
   unsigned long Actual = millis();
-  if ((Actual - mSECS)/6000 == 1){
+  //Serial.println("1");
+  if ((Actual - mSECS)/60000 >= 1){
     MINS++;
     mSECS = Actual;
+    Serial.print("Mins: ");
+    Serial.println(MINS);
     Serial2.print("page0.t3.txt=\"");
     Serial2.print(MINS);
     Serial2.print("\"");
     ff();
   }
+  //Serial.println("2");
 }
 
 //********************************************************** Funciones de modos de operacion
@@ -481,7 +485,7 @@ void apagarAuto(){
     delay(8);
     //mandar senales
     char S = char(i+1);
-  envioOrden(S, 'Z');
+  envioOrden(S, 'X');
     V_apagar(i);
   }
   Auto = false;
