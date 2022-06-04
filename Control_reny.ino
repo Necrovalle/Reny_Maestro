@@ -7,8 +7,8 @@ boolean Auto=false, Manual=true, Semi=false; //Modos de operación
 int N_man; //Linea de trabajo para operacion manual
 unsigned int MINS = 0;
 unsigned long mSECS = 0;
-float condAcep=0.0; //Valor de conductividad de aceptacion
-float presAcep=0.0; //Valor de presion dentrada de aceptacion
+float condAcep=50.0; //Valor de conductividad de aceptacion
+float presAcep=10.0; //Valor de presion dentrada de aceptacion
 int minOP=3, minLV=2, minEN=2;
 int T_OP[]={0,0,0,0};
 int T_LV[]={0,0,0,0};
@@ -68,7 +68,7 @@ int Ent_sistema = 40,
     estado_SAL = 0;
 
 //Variables para comunicacion rs485
-char   RES;     //Resopuesta del modulo escalvo
+char   RES;     //Respuesta del modulo escalvo
 
 //***************************************************** Declracion de objetos de la pantalla
 NexDSButton bt0 = NexDSButton(2, 2, "bt0");  //(page, id, name) modo automatico
@@ -324,6 +324,8 @@ void getMin(){
     Serial2.print(MINS);
     Serial2.print("\"");
     ff();
+    delay(5);
+    calidadEntrada();
   }
   //Serial.println("2");
 }
@@ -1198,6 +1200,22 @@ void llenar_manual(int N_l){
     ff();
     delay(8); 
   }
+}
+//*************************************************** Revision de calidad de agua de entrada
+
+void calidadEntrada(){
+  envioOrden (9, 'A');
+  //Designar variable de calidad de agua, en porcentaje (letra a %)
+  int V_p = 0;
+  V_p = (RES - 76) * 10;
+  if (V_p < condAcep){ //Criterio de aceptacion
+    Serial2.print("page0.bt0.val=0");
+    ff();
+  } else {  //Criterio de rechazo
+    Serial2.print("page0.bt0.val=1");
+    ff();
+  }
+  
 }
 
 //*************************************************** Funcion de fin de cadena a la pantalla
