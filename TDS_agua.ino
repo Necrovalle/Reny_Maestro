@@ -1,31 +1,70 @@
-char ENT;
-boolean Act;
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
 int LA;
 float V;
 float ppm;
+float uS;
+float f  = 1.078; //factor de calibracion
+float Vr = 4.85;  //Voltaje de referencia
+float ACP; //en uS
+int RF; //Referencia de aceptacion analogico1
+
+#define rojo 4    //led de acetacion
+#define verde 3   //led de rechazo
+
+LiquidCrystal_I2C lcd(0x27,16,2);
 
 void setup() {
+  lcd.init();
   Serial.begin(9600);
-  Act = false;
+  lcd.backlight();
+  pinMode(rojo, OUTPUT);
+  pinMode(verde, OUTPUT);
+  lcd.print("Inicializando...");
+  lcd.setCursor(0,1);
+  lcd.print("Conductividad");
+  delay(1100);
 }
 
 void loop() {
-  if (Serial.available()>0){
-    ENT = Serial.read();
-    if (ENT == 'A'){Act = true;}
-    if (ENT == 'X'){Act = false;}
-    ENT = '0';
+  RF = analogRead(A1);
+  ACP = map(RF, 0, 1023, 0, 600);
+  Serial.print("RF = ");
+  Serial.println(ACP);
+  LA = analogRead(A0);
+  V = (LA / 1023.0) * Vr;
+  ppm = (V * 1000) / 2.3;
+  ppm = ppm / f; 
+  uS = ppm * 2;
+  //Factor de caliobracion pendiente en regresion linial
+  Serial.print("V= ");
+  Serial.println(V);
+  Serial.print("uS/cm= ");
+  Serial.println(uS);
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("S.P.  =");
+  lcd.setCursor(8, 0);
+  lcd.print(ACP);
+  lcd.setCursor(0,1);
+  lcd.print("uS/cm =");
+  lcd.setCursor(8, 1);
+  lcd.print(uS);
+  if (uS <= ACP){
+    if (uS <= 0.5){
+      digitalWrite(verde, LOW);
+      digitalWrite(rojo, LOW);
+      Serial.println("Vacio");
+    } else {
+      digitalWrite(verde, HIGH);
+      digitalWrite(rojo, LOW);
+      Serial.println("Aceptable");
+    }
+  } else {
+    digitalWrite(verde, LOW);
+    digitalWrite(rojo, HIGH);
+    Serial.println("Rechazar");
   }
-  if (Act){
-    LA = analogRead(A0);
-    V = (LA / 1023.0) * 4.85;
-    ppm = (V * 1000) / 2.3;
-    ppm = ppm / 1.078; 
-    //Factor de caliobracion pendiente en regresion linial
-    Serial.print("V= ");
-    Serial.println(V);
-    Serial.print("ppm= ");
-    Serial.println(ppm);
-    delay(900);
-  }
+  delay(900);
 }
