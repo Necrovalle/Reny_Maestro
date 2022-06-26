@@ -7,7 +7,7 @@ boolean Auto=false, Manual=true, Semi=false; //Modos de operación
 int N_man; //Linea de trabajo para operacion manual
 unsigned int MINS = 0;
 unsigned long mSECS = 0;
-float condAcep=50.0; //Valor de conductividad de aceptacion
+float condAcep=30.0; //Valor de conductividad de aceptacion
 float presAcep=10.0; //Valor de presion dentrada de aceptacion
 int minOP=3, minLV=2, minEN=2;
 int T_OP[]={0,0,0,0};
@@ -325,7 +325,7 @@ void getMin(){
     Serial2.print("\"");
     ff();
     delay(5);
-    calidadEntrada();
+    //calidadEntrada();
   }
   //Serial.println("2");
 }
@@ -1208,7 +1208,7 @@ void calidadEntrada(){
   //Designar variable de calidad de agua, en porcentaje (letra a %)
   int V_p = 0;
   V_p = (RES - 76) * 10;
-  if (V_p < condAcep){ //Criterio de aceptacion
+  if (V_p <= condAcep){ //Criterio de aceptacion
     Serial2.print("page0.bt0.val=0");
     ff();
   } else {  //Criterio de rechazo
