@@ -12,6 +12,7 @@ int RF; //Referencia de aceptacion analogico1
 
 #define rojo 4    //led de acetacion
 #define verde 3   //led de rechazo
+#define relee 5   //Salida digital para electrovalvulas
 
 LiquidCrystal_I2C lcd(0x27,16,2);
 
@@ -21,10 +22,12 @@ void setup() {
   lcd.backlight();
   pinMode(rojo, OUTPUT);
   pinMode(verde, OUTPUT);
+  pinMode(relee, OUTPUT);
   lcd.print("Inicializando...");
   lcd.setCursor(0,1);
   lcd.print("Conductividad");
   delay(1100);
+  digitalWrite(relee, HIGH);
 }
 
 void loop() {
@@ -56,15 +59,18 @@ void loop() {
       digitalWrite(verde, LOW);
       digitalWrite(rojo, LOW);
       Serial.println("Vacio");
+      digitalWrite(relee, HIGH);
     } else {
       digitalWrite(verde, HIGH);
       digitalWrite(rojo, LOW);
       Serial.println("Aceptable");
+      digitalWrite(relee, HIGH);
     }
   } else {
     digitalWrite(verde, LOW);
     digitalWrite(rojo, HIGH);
     Serial.println("Rechazar");
+    digitalWrite(relee, LOW);
   }
   delay(900);
 }
