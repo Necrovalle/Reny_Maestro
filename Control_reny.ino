@@ -193,62 +193,20 @@ NexTouch *nex_listen_list[]=
 
 //********************************************** FUNCIONES PROPIAS
 void envioOrden(int id_, char CMD_){
-  int C_=0;
   Serial1.print(id_);
-  delay(5);
-  digitalWrite(48, LOW); //Modo escucha
-  digitalWrite(46, LOW);
-  while (C_ < 10){
-    delay(100);
-    if (Serial1.available()>0){
-      RES = Serial1.read();
-      Serial.print("Recivido: ");
-      Serial.println(RES);
-      if ((RES-48) == id_){
-        Serial.print("Respondio el modulo ");
-        Serial.println(id_);
-        digitalWrite(48, HIGH); //Modo escritura
-        digitalWrite(46, HIGH);
-        delay(30);
-        C_ = 16;
-        envioCMD(CMD_);
-      }
-    }
-    C_ ++;
-    if (C_ == 15){
-      Serial.print("Modulo ");
-      Serial.print(id_);
-      Serial.println(" sin id");
-      digitalWrite(48, HIGH); //Modo escritura
-      digitalWrite(46, HIGH);
-    }
-  }
+  //digitalWrite(48, LOW); //Modo escucha
+  //digitalWrite(46, LOW);
+  delay(30);
+  Serial.print("modulo: ");
+  Serial.println(id_);
+  envioCMD(CMD_);
 }
 
 
 void envioCMD(char CMD_){
-  int C_=0;
   Serial1.print(CMD_);
-  delay(5);
-  digitalWrite(48, LOW); //Modo escucha
-  digitalWrite(46, LOW);
-  while (C_ < 10){
-    delay(100);
-    if (Serial1.available()>0){
-      RES = Serial1.read();
-      if (RES == CMD_){
-        Serial.print("Accion ejecutada: ");
-        Serial.println(RES);
-        C_ = 16;
-      }
-    }
-    C_ ++;
-    if (C_ == 15){
-      Serial.println(" Sin ejecucion");
-    }
-  }
-  digitalWrite(48, HIGH); //Modo escritura
-  digitalWrite(46, HIGH);
+  Serial.print("Accion ejecutada: ");
+  Serial.println(CMD_);
 }
 
 //******************************************************* Funciones de accion de la pantalla
@@ -315,7 +273,7 @@ void mostrarMonitor(void *ptr){
 void getMin(){
   unsigned long Actual = millis();
   //Serial.println("1");
-  if ((Actual - mSECS)/60000 >= 1){
+  if ((Actual - mSECS)/6000 >= 1){
     MINS++;
     mSECS = Actual;
     Serial.print("Mins: ");
@@ -331,11 +289,11 @@ void getMin(){
 }
 
 //********************************************************** Funciones de modos de operacion
-void operarAuto(){
+void operarAuto(){  //cambiar a direcciones de 1 a 8 no de 0 a 7
   //Cambiar a operacion
   for (int i=0; i<4; i++){
     if (T_OP[i] == MINS){
-      //Mandar a oprracion
+      //Mandar a oprracion  
       operando_Auto_linea(i);
       T_OP[i] = T_OP[i] + (minOP + minLV + minEN);
     }
