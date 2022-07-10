@@ -13,6 +13,9 @@ int minOP=3, minLV=2, minEN=2;
 int T_OP[]={0,0,0,0};
 int T_LV[]={0,0,0,0};
 int T_EN[]={0,0,0,0};
+int B_RT[]={0,0,0,0,0,0,0,0,0};
+int B_RTs;
+boolean ACR_BRT = false;
 
 //direcciones de salida de operacion automatica
 int clarificado_Auto[] = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -306,7 +309,7 @@ void operarAuto(){  //cambiar a direcciones de 1 a 8 no de 0 a 7
       T_LV[j] = T_LV[j] + (minOP + minLV + minEN);
     }
   }
-  //Mandar a lavado
+  //Mandar a enjuague
   for (int k=0; k<4; k++){
     if (T_EN[k] == MINS){
       //Mandar a operacion los modulos
@@ -355,8 +358,10 @@ void lavado_Auto_linea(int N){
   Serial.println(N);
   //char S = char(2*N+1);
   envioOrden(2*N+1, 'B');
+  B_RT[2*N+1] = 1;
   //S = char(2*N+2);
   envioOrden(2*N+2, 'B');
+  B_RT[2*N+2] = 1;
 }
 
 void enjuague_Auto_linea(int N){
@@ -388,8 +393,10 @@ void enjuague_Auto_linea(int N){
   //mandar señales
   //char S = char(2*N+1);
   envioOrden(2*N+1, 'C');
+  B_RT[2*N+1]=0;
   //S = char(2*N+2);
   envioOrden(2*N+2, 'C');
+  B_RT[2*N+2]=0;
   Serial.print("Enjuagando numero: ");
   Serial.println(N);
 }
@@ -423,8 +430,10 @@ void operando_Auto_linea(int N){
   //mandar señales
   //char S = char(2*N+1);
   envioOrden(2*N+1, 'A');
+  B_RT[2*N+1] = 0;
   //S = char(2*N+2);
   envioOrden(2*N+2, 'A');
+  B_RT[2*N+0] = 0;
   Serial.print("Operando numero: ");
   Serial.println(N);
 }
@@ -445,10 +454,19 @@ void apagarAuto(){
     delay(8);
     //mandar senales
     char S = char(i+1);
-  envioOrden(S, 'X');
+    envioOrden(S, 'A');
     V_apagar(i);
   }
   Auto = false;
+  B_RT[0]=0;
+  B_RT[1]=0;
+  B_RT[2]=0;
+  B_RT[3]=0;
+  B_RT[4]=0;
+  B_RT[5]=0;
+  B_RT[6]=0;
+  B_RT[7]=0;
+  B_RT[8]=0;
 }
 
 //Clarificado semi automatico
@@ -469,11 +487,13 @@ void CLF_semi(int N, int EDO){
     //mandar señales
     char S = char(N);
     envioOrden(S, 'A');
+    B_RT[N] = 0;
   } else {
     Sal = "Calrificacion en " + String(N) + " OFF";
     Serial.println(Sal);
     char S = char(N);
-    envioOrden(S, 'X');
+    envioOrden(S, 'A');
+    B_RT[N] = 0;
     //mandar señales
   }
 }
@@ -600,12 +620,14 @@ void RLV_semi(int N, int EDO){
     //mandar señales
     char S = char(N);
     envioOrden(S, 'B');
+    B_RT[N] = 1;
   } else {
     Sal = "Retrovado en " + String(N) + " OFF";
     Serial.println(Sal);
     //mandar señales
     char S = char(N);
-    envioOrden(S, 'X');
+    envioOrden(S, 'A');
+    B_RT[N] = 0;
   }
 }
 
@@ -730,12 +752,14 @@ void ENJ_semi(int N, int EDO){
     //mandar señales
     char S = char(N);
     envioOrden(S, 'C');
+    B_RT[N] = 0;
   } else {
     Sal = "Enjuague en " + String(N) + " OFF";
     Serial.println(Sal);
     //mandar señales
     char S = char(N);
-    envioOrden(S, 'X');
+    envioOrden(S, 'A');
+    B_RT[N] = 0;
   }
 }
 
@@ -1253,6 +1277,20 @@ void loop() {
     operarSemi();
   } else if (Manual) {
     operarManual();
+  }
+  //operacion de bomba de retrolavado
+  B_RTs = 0;
+  for (int k=1; k<9; k++){
+    B_RTs = B_RTs + B_RT[k];
+  }
+  if (B_RTs > 0 && ACR_BRT == false){
+    envioOrden(9, 'A');
+    ACR_BRT = true;
+  } else {
+    if (ACR_BRT == true && B_RTs == 0){
+      envioOrden(9, 'X');
+      ACR_BRT = false;  
+    }
   }
   nexLoop(nex_listen_list);
 }
